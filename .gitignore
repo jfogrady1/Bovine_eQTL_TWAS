@@ -7,3 +7,4 @@ bin/software/*
 bin/TWAS/generic-metal
 bin/TWAS/1000Bull_UMD_GWAS_REF_ALT_SNPs.tab
 .snakemake/*
+snakepit/trans_mapping.smk
