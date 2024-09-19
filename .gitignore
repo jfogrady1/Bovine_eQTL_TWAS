@@ -8,6 +8,6 @@ bin/TWAS/generic-metal
 bin/TWAS/1000Bull_UMD_GWAS_REF_ALT_SNPs.tab
 .snakemake/*
 snakepit/trans_mapping.smk
-.nextflow.log
-.nextflow.log.1
+bin/.nextflow.log
+bin/.nextflow.log.1
 environment.yml
