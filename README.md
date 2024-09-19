@@ -11,8 +11,8 @@ Mycobacterium bovis causes bovine tuberculosis (bTB), an infectious disease of c
 
 ![image](https://github.com/user-attachments/assets/63f257fe-d8b0-4c87-8956-9b2a35f4beb1)
 
- ## Reference files 
+ ## Data availability
  
-
+The RNA-seq data from the 60 M. bovis-infected (bTB+) and 63 control (bTB−) cattle is available at the Gene Expression Omnibus (GEO) with the BioProject Accession GSE255724. The raw UMD 3.1 high density genotype data, ARS UCD1.2 imputed and filtered data, cis-eQTL results for the three groups (bTB−, bTB+ and AAG), GWAS summary statistics for the four breed cohorts (CH, LM, HF, MB) in addition to expression models generated for use in the TWAS are available at Zenodo (link; XXX). Of note, raw GWAS data were not analysed in this study; The original GWAS information can be obtained from the Irish Cattle Breeding Federation (ICBF) and additional information about sequence and genotype data availability is provided by Ring et al. (2019) doi: https://doi.org/10.1371/journal.pone.0212067. Cattle GTEx Consortium cis-eQTL summary statistics can be obtained from https://cgtex.roslin.ed.ac.uk/wp-content/plugins/cgtex/static/rawdata/Full_summary_statisitcs_cis_eQTLs_FarmGTEx_cattle_V0.tar.gz.
 
   
