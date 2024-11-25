@@ -35,6 +35,6 @@ rule qtl_mapping_interaction:
             --window 1000000 \
             --seed 1864 \
             --interaction {input.interaction_file} \
-            --maf_threshold_interaction 0.1 \
+            --maf_threshold_interaction 0.05 \
             --mode cis_nominal
         '''
