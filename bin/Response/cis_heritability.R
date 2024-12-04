@@ -1,7 +1,5 @@
 library(tidyverse)
 library(data.table)
-library(foreach)
-library(doParallel)
 
 
 
@@ -25,14 +23,12 @@ continuous <- covariates %>% select(-c(Condition))
 continuous <- cbind(fam$V1, fam$V2, continuous)
 write.table(continuous, file=paste(temp_direc,"continuous_covar.qcovar", sep = ""), quote=F, col.names=F, row.names=F)
 
-#gcta = "/home/workspace/jogrady/my-bin/gcta64/gcta64"
+gcta = "/home/workspace/jogrady/my-bin/gcta64/gcta64"
 
-num_cores <- 8
-cl <- makeCluster(num_cores)
-registerDoParallel(cl)
 
-foreach(i = 1:length(genelist), .packages = c("dplyr")) %dopar% {
-    cat(i, "/", length(genelist), "\n")
+
+for(i in 1:length(genelist)) {
+    print(cat(i, "/", length(genelist), "\n"))
     
     # 2. Get gene info
     gene <- genelist[i]
@@ -72,6 +68,3 @@ foreach(i = 1:length(genelist), .packages = c("dplyr")) %dopar% {
     system(runGREML)
 }
 
-#/ENSBTAG00000044172.grm.id
-
-stopCluster(cl)
