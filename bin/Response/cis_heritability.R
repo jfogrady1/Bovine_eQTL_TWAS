@@ -1,70 +1,59 @@
 library(tidyverse)
 library(data.table)
 
+args = commandArgs(trailingOnly = TRUE)
+
+ALL_cis_eVariants <- fread(args[1])
+print("HERE")
+gtf <- fread(args[2])
+plink_files = args[3]
+bim = read.table(args[4])
+fam = read.table(args[5])
+gene = args[6]
+temp_direc = args[7]
+temp_direc2 = args[8]
+txt_files = gsub("add_h2", "", temp_direc)
 
 
-ALL_cis_eVariants <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/ALL_raw_cis_eQTL_associations.txt.gz")
-gtf <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL.expr_tmm_inv.bed.gz")
-plink_files = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_genotypes_tensor"
-bim = read.table("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_genotypes_tensor.bim")
-fam = read.table("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_genotypes_tensor.fam")
-covariates = data.frame(t(read.table("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL.covariates.txt")))
-genelist = (unique(ALL_cis_eVariants$phenotype_id))
-temp_direc = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/"
-
-
-
-# Get covariates in right format
-discrete_covariates = covariates$Condition
-discrete_covariates <- cbind(fam$V1, fam$V2, discrete_covariates)
-write.table(discrete_covariates, file=paste(temp_direc,"discrete_covar.covar", sep = ""), quote=F, col.names=F, row.names=F)
-
-continuous <- covariates %>% select(-c(Condition))
-continuous <- cbind(fam$V1, fam$V2, continuous)
-write.table(continuous, file=paste(temp_direc,"continuous_covar.qcovar", sep = ""), quote=F, col.names=F, row.names=F)
-
-gcta = "/home/workspace/jogrady/my-bin/gcta64/gcta64"
+gcta = args[9]
 
 
 
-for(i in 1:length(genelist)) {
-    print(cat(i, "/", length(genelist), "\n"))
-    
-    # 2. Get gene info
-    gene <- genelist[i]
-    gene
-    geneinfo <- gtf[match(gene, gtf$phenotype_id),]
-    colnames(geneinfo)[1] <- "Chr"
-    chr <- geneinfo[1] 
-    c <- chr$Chr
-    start <- geneinfo$start - 1e6  # 1Mb upstream of the gene
-    end <- geneinfo$end + 1e6      # 1Mb downstream of the gene  
-    start <- if_else(start < 0, 0, start)
-    end <- if_else(end < 0, 0, end)
 
-    # 3. Filter SNPs in the same chromosome
-    chrsnps <- subset(bim, bim$V1 == c)
-    # 4. Filter for cis-SNPs
-    cissnps <- subset(chrsnps, chrsnps$V4 >= start & chrsnps$V4 <= end)
-    # 5. Create SNP list
-    snplist <- cissnps[,2]
-    write.table(snplist, file=paste(temp_direc,"tmp.cis.SNPlist", sep = ""), quote=F, col.names=F, row.names=F)
+# 2. Get gene info]
+print(gene)
+geneinfo <- gtf[match(gene, gtf$phenotype_id),]
+colnames(geneinfo)[1] <- "Chr"
+chr <- geneinfo[1] 
+c <- chr$Chr
+start <- geneinfo$start - 1e6  # 1Mb upstream of the gene
+end <- geneinfo$end + 1e6      # 1Mb downstream of the gene  
+start <- if_else(start < 0, 0, start)
+end <- if_else(end < 0, 0, end)
 
-    # write phenotype
-    pheno <- as.numeric(geneinfo[1,5:length(colnames(geneinfo))])
-    pheno
-    pheno = cbind(fam$V1, fam$V2, pheno)    
-    write.table(pheno, file=paste(temp_direc,gene,".phen", sep = ""), quote=F, col.names=F, row.names=F)
-    
-    # GCTA command to generate GR<
-    runGCTAgrm <- paste0(gcta, " --bfile ", plink_files, " --make-grm --autosome-num 29 --extract ", temp_direc, "tmp.cis.SNPlist", "  --thread-num 1 --out ", temp_direc, gene)
-    runGCTAgrmd <- paste0(gcta, " --bfile ", plink_files, " --make-grm-d --autosome-num 29 --extract ", temp_direc, "tmp.cis.SNPlist", "  --thread-num 1 --out ", temp_direc, gene,"_domi")
-    write.table(paste0(temp_direc, gene,"\n",temp_direc, gene,"_domi.d","\n"), file = paste0(temp_direc,"add_domi_grm.txt"), quote=F, col.names=F, row.names=F)
+# 3. Filter SNPs in the same chromosome
+chrsnps <- subset(bim, bim$V1 == c)
+# 4. Filter for cis-SNPs
+cissnps <- subset(chrsnps, chrsnps$V4 >= start & chrsnps$V4 <= end)
+# 5. Create SNP list
+snplist <- cissnps[,2]
+write.table(snplist, file=paste(temp_direc, gene, ".cis.SNPlist", sep = ""), quote=F, col.names=F, row.names=F)
+write.table(snplist, file=paste(temp_direc2, gene, ".cis.SNPlist", sep = ""), quote=F, col.names=F, row.names=F)
 
-    runGREML <- paste0(gcta, " --mgrm ", temp_direc, "add_domi_grm.txt --reml --reml-no-constrain --reml-bendV --reml-lrt 1 2 --pheno ", temp_direc, gene,".phen --covar ",  temp_direc, "discrete_covar.covar --qcovar ", temp_direc, "continuous_covar.qcovar --out ", temp_direc, gene,"_add_domi")
-    
-    system(runGCTAgrm)
-    system(runGCTAgrmd)
-    system(runGREML)
-}
+# write phenotype
+pheno <- as.numeric(geneinfo[1,5:length(colnames(geneinfo))])
+pheno
+pheno = cbind(fam$V1, fam$V2, pheno)    
+write.table(pheno, file=paste(temp_direc,gene,".phen", sep = ""), quote=F, col.names=F, row.names=F)
 
+# GCTA command to generate GR<
+runGCTAgrm <- paste0(gcta, " --bfile ", plink_files, " --make-grm --autosome-num 29 --extract ", temp_direc, gene, ".cis.SNPlist", "  --thread-num 1 --out ", temp_direc, gene)
+runGCTAgrmd <- paste0(gcta, " --bfile ", plink_files, " --make-grm-d --autosome-num 29 --extract ", temp_direc, gene, ".cis.SNPlist", "  --thread-num 1 --out ", temp_direc2, gene,"_domi")
+write.table(paste0(temp_direc, gene,"\n",temp_direc2, gene,"_domi.d","\n"), file = paste0(txt_files,gene,"_add_domi_grm.txt"), quote=F, col.names=F, row.names=F)
+runGREML_narrow <- paste0(gcta, " --reml --grm ", temp_direc, gene, " --pheno ", temp_direc, gene, ".phen --covar ", txt_files, "discrete_covar.covar --qcovar ", txt_files, "continuous_covar.qcovar --out ", temp_direc, gene,"_SNP_based") # Calculate SNP based heritability
+runGREML_comparison <- paste0(gcta, " --mgrm ", txt_files,gene,"_add_domi_grm.txt --reml --reml-lrt 2 --pheno ", temp_direc, gene,".phen --covar ",  txt_files, "discrete_covar.covar --qcovar ", txt_files, "continuous_covar.qcovar --out ", temp_direc, gene,"_add_domi") # Comparison of the two
+
+system(runGCTAgrm)
+system(runGCTAgrmd)
+system(runGREML_narrow)
+system(runGREML_comparison)

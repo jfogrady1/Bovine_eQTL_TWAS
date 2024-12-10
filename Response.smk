@@ -6,6 +6,16 @@ import subprocess
 
 autosomes = [str(i) for i in range(1,30)] # bovine autosomes
 
+ALL_genes_eQTL = pd.read_csv("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/ALL.cis_qtl_fdr0.05.txt", sep = "\t")
+print(ALL_genes_eQTL.head())
+ALL_genes_gcta = ALL_genes_eQTL["phenotype_id"].tolist()
+CONTROL_genes_eQTL = pd.read_csv("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/CONTROL.cis_qtl_fdr0.05.txt", sep = "\t")
+CONTROL_genes_gcta = CONTROL_genes_eQTL["phenotype_id"].tolist()
+INFECTED_genes_eQTL = pd.read_csv("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/INFECTED.cis_qtl_fdr0.05.txt", sep = "\t")
+INFECTED_genes_gcta = CONTROL_genes_eQTL["phenotype_id"].tolist()
+
+
+
 
 rule all:
     input:
@@ -13,7 +23,13 @@ rule all:
         expand("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/call/selected.{sample}.filtered.vcf.gz", sample = config["samples"]),
         expand("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/call/{sample}_rename.txt", sample = config["samples"]),
         expand("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_Data_RNA_CHR{chromosome}.IMPUTED.RAW.dose.vcf.gz", chromosome = autosomes),
-        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_RNA_ALL_imputation_summary_statistics_sorted.info"
+        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_RNA_ALL_imputation_summary_statistics_sorted.info",
+        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/continuous_covar.qcovar",
+        expand("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/add_h2/{gene}.phen", gene = ALL_genes_gcta),
+        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/Cis-h2-figure.pdf",
+        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/plots/Imputation_performance_DNA_V_DNA_RNA.pdf",
+        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_Data_RNA_ALL_CHR.IMPUTED.FILTERED.dose.vcf.gz"
+
 
 
 
@@ -169,8 +185,7 @@ rule rename_vcf:
     shell:
         """
         echo "20 {params.name}" > {output.name_file}
-        bcftools reheader -s {output.name_file} {input.out_filter2} -o {output.out_filter3}
-        tabix -p vcf {output.out_filter3}
+        bcftools reheader -s {output.name_file} {input.out_filter2} -o {output.out_filter3} && tabix -p vcf {output.out_filter3}
         """
 
 rule merge_RNA_vcf:
@@ -182,8 +197,7 @@ rule merge_RNA_vcf:
 
     shell:
         """
-        bcftools merge {input.vcfs} -Oz -o {output.merged}
-        tabix -p vcf {output.merged}
+        bcftools merge {input.vcfs} -Oz -o {output.merged} && tabix -p vcf {output.merged}
         """
 
 rule filter_RNA_seq_variant_call:
@@ -195,8 +209,7 @@ rule filter_RNA_seq_variant_call:
 
     shell:
         """
-        bcftools view -Oz -m2 -M2 -v snps -i 'F_MISSING < 0.2' -r 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29 {input.vcf} -o {output.vcf_filtered}
-        tabix -p vcf {output.vcf_filtered}
+        bcftools view -Oz -m2 -M2 -v snps -i 'F_MISSING < 0.2' -r 1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29 {input.vcf} -o {output.vcf_filtered} && tabix -p vcf {output.vcf_filtered}
         """
 
 rule change_SNP_data_name:
@@ -217,8 +230,7 @@ rule change_SNP_data_name:
         bcftools view  {input.vcf} -Oz -o {output.vcf_bcftools}
         bcftools reheader -s {input.names} {output.vcf_bcftools} -o {output.vcf_renamed}
         bcftools reheader -h {input.header} {output.vcf_bcftools} -o {output.vcf_renamed_header}
-        bcftools annotate -x  "INFO/PR" {output.vcf_renamed_header} -Oz -o {output.vcf_renamed_header_noPR}
-        tabix -p vcf {output.vcf_renamed_header_noPR}
+        bcftools annotate -x  "INFO/PR" {output.vcf_renamed_header} -Oz -o {output.vcf_renamed_header_noPR} && tabix -p vcf {output.vcf_renamed_header_noPR}
         """
 
 rule concat_with_SNP_data:
@@ -231,7 +243,7 @@ rule concat_with_SNP_data:
 
     shell:
         """
-        bcftools concat -a -d snps {input.SNP_data} {input.RNA_seq} -Oz -o {output.RNA_SNP_concat}
+        bcftools concat -a -d snps {input.SNP_data} {input.RNA_seq} -Oz -o {output.RNA_SNP_concat} && tabix -p vcf {output.RNA_SNP_concat}
         """
     
 
@@ -247,7 +259,7 @@ rule split_target_RNA_SNP_by_chr:
         ext = ".vcf.gz"
     shell:
         '''
-        vcftools --gzvcf {input.cleaned_target} --chr {params.chromosome} --recode --recode-INFO-all --stdout | bgzip -c > {params.path}{params.chromosome}{params.ext}
+        vcftools --gzvcf {input.cleaned_target} --chr {params.chromosome} --recode --recode-INFO-all --stdout | bgzip -c > {params.path}{params.chromosome}{params.ext} && tabix -p vcf {params.path}{params.chromosome}{params.ext}
         '''
 
 rule phasing_target_RNA_SNP:
@@ -299,3 +311,95 @@ rule merge_info_files_RNA:
         cat {input.info} >> {output.all_info}
         sort -n -k1 {output.all_info} > {output.all_sorted}
         '''
+
+rule plot_imputation_performance:
+    input:
+        RNA_SNPs = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_RNA_ALL_imputation_summary_statistics_sorted.info",
+        Array_SNPs = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/SNP_data/imputation/imputed/ALL_imputation_summary_statistics_sorted.info",
+        script = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/Imputation_performance.R"
+    output:
+        pdf = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/plots/Imputation_performance_DNA_V_DNA_RNA.pdf"
+
+    shell:
+        """
+        Rscript {input.script} {input.RNA_SNPs} {input.Array_SNPs} {output.pdf}
+        """
+
+rule merge_imputation:
+    input:
+        imputed = expand("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_Data_RNA_CHR{chromosome}.IMPUTED.RAW.dose.vcf.gz", chromosome = autosomes)
+
+    output:
+        merged = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_Data_RNA_ALL_CHR.IMPUTED.RAW.dose.vcf.gz",
+
+    shell:
+        '''
+        bcftools concat -Oz -o {output.merged} {input.imputed} && tabix -p vcf {output.merged}
+        '''
+
+
+rule filter_RNA_imputed:
+    input:
+        renamed = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_Data_RNA_ALL_CHR.IMPUTED.RAW.dose.vcf.gz"
+
+    output:
+        filtered_imputed = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_Data_RNA_ALL_CHR.IMPUTED.FILTERED.dose.vcf.gz"
+    shell:
+        '''
+        bcftools +fill-tags {input.renamed} -Oz | bcftools view -q 0.05:minor -Oz | bcftools view -e 'HWE < 0.000001 || R2 < 0.6 || F_MISSING > 0.05 || N_MISSING > 0.05' -Oz -o {output.filtered_imputed} && tabix -p vcf {output.filtered_imputed}
+        '''
+
+rule edit_covariates_gcta:
+    input:
+        script = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/Edit_covariates_gcta.R",
+        cov = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL.covariates.txt",
+        bim = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_genotypes_tensor.bim", 
+        fam = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_genotypes_tensor.fam"
+
+
+    output:
+        discrete = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/discrete_covar.covar",
+        continuous = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/continuous_covar.qcovar"
+
+    shell:
+        """
+        Rscript {input.script} {input.bim} {input.fam} {input.cov} {output.discrete} {output.continuous}
+        """
+
+
+
+rule generate_add_dom_grm:
+    input:
+        gcta = "/home/workspace/jogrady/my-bin/gcta64/gcta64",
+        script = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/cis_heritability.R",
+        ALL_cis_eVariants = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/ALL.cis_qtl_fdr0.05.txt",
+        gtf = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL.expr_tmm_inv.bed.gz",
+        bim = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_genotypes_tensor.bim",
+        fam = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_genotypes_tensor.fam",
+        discrete = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/discrete_covar.covar",
+        continuous = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/continuous_covar.qcovar"
+    output:
+        pheno_file = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/add_h2/{gene}.phen",
+        snp_file_dom  = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/dom_h2/{gene}.cis.SNPlist"
+
+    params:
+        gene = "{gene}",
+        temp_direc = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/add_h2/",
+        temp_direc2 = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/dom_h2/",
+        plink_files = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_genotypes_tensor",
+    shell:
+        """
+        Rscript {input.script} {input.ALL_cis_eVariants} {input.gtf} {params.plink_files} {input.bim} {input.fam} {params.gene} {params.temp_direc} {params.temp_direc2} \
+        {input.gcta}
+        """
+rule plot_heritability:
+    input:
+        script = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/plot_heritability.R"
+    output:
+        pdf = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/Cis-h2-figure.pdf"
+    params:
+        path = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/add_h2"
+    shell:
+        """
+        Rscript {input.script} {params.path} {output.pdf}
+        """
