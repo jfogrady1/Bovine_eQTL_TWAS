@@ -28,11 +28,14 @@ rule all:
         expand("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/ALL_files/add_h2/{gene}.phen", gene = ALL_genes_gcta),
         "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/Cis-h2-figure.pdf",
         "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/plots/Imputation_performance_DNA_V_DNA_RNA.pdf",
-        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_Data_RNA_ALL_CHR.IMPUTED.FILTERED.dose.vcf.gz"
+        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_Data_RNA_ALL_CHR.IMPUTED.FILTERED.dose.vcf.gz",
+        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/isec_output/private_RNA.ld"
 
 
 
-
+##################################################
+# ieQTL mapping
+##################################################
 
 rule qtl_mapping_interaction:
     input:
@@ -58,6 +61,11 @@ rule qtl_mapping_interaction:
             --maf_threshold_interaction 0.05 \
             --mode cis_nominal
         '''
+
+
+#########################################################
+# Variant calling from RNA-seq data
+#########################################################
 
 # wget http://ftp.ensembl.org/pub/release-100/gtf/sus_scrofa/Sus_scrofa.Sscrofa11.1.100.gtf.gz
 
@@ -280,6 +288,9 @@ rule phasing_target_RNA_SNP:
         out={params.path}{params.chr}
         """
 
+#########################################################
+# Imputation with variants called from RNA-seq data
+#########################################################
 
 rule imputation:
     input:
@@ -348,6 +359,40 @@ rule filter_RNA_imputed:
         '''
         bcftools +fill-tags {input.renamed} -Oz | bcftools view -q 0.05:minor -Oz | bcftools view -e 'HWE < 0.000001 || R2 < 0.6 || F_MISSING > 0.05 || N_MISSING > 0.05' -Oz -o {output.filtered_imputed} && tabix -p vcf {output.filtered_imputed}
         '''
+
+rule overlap_imputed_variants:
+    input:
+        filtered_RNA_imputed = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_Data_RNA_ALL_CHR.IMPUTED.FILTERED.dose.vcf.gz",
+        filtered_DNA_imputed = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/SNP_data/imputation/imputed/SNP_Data_ALL_CHR.Renamed.IMPUTED.FILTERED.dose.vcf.gz"
+    output:
+        isec_output = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/isec_output/sites.txt"
+    params:
+        file_location = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/"
+
+    shell:
+        """
+        bcftools isec -p {params.file_location}isec_output -Oz {input.filtered_RNA_imputed} {input.filtered_DNA_imputed}
+        """
+rule LD_new_and_overlapped:
+    input:
+        private_RNA = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/isec_output/0000.vcf.gz", # private to RNA
+        ALL_RNA = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_Data_RNA_ALL_CHR.IMPUTED.FILTERED.dose.vcf.gz" # overlap
+    output:
+        private_SNPs = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/isec_output/RNA_private_post.txt",
+        ld_file = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/isec_output/private_RNA.ld"
+    shell:
+        """
+        bcftools query -f '%ID\n' {input.private_RNA} > {output.private_SNPs}
+        
+        plink --vcf {input.ALL_RNA} --cow --keep-allele-order --ld-window 15000 --ld-window-kb 1000 --r2 yes-really --ld-window-r2 0.2 --ld-snp-list {output.private_SNPs} --out /home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/isec_output/private_RNA
+        """
+    
+
+
+
+#########################################################
+# cis-heritability estimation
+#########################################################
 
 rule edit_covariates_gcta:
     input:
