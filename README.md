@@ -23,3 +23,5 @@ The RNA-seq data from the 60 M. bovis-infected (bTB+) and 63 control (bTB−) ca
 
 J.F.O’G was supported by Research Ireland through the Research Ireland Centre for Research Training in Genomics Data Science (**grant no. 18/CRT/6214**). This study was also supported by Science Foundation Ireland (SFI) Investigator Programme Awards to D.E.M. and S.V.G. (**grant nos. SFI/08/IN.1/B2038 and SFI/15/IA/3154**), the University College Dublin – University of Edinburgh Strategic Partnership in One Health awarded to D.E.M., S.V.G., J.G.D.P., and E.L.C., and a Department of Agriculture, Food and the Marine (DAFM) project award to D.E.M. (**TARGET-TB; grant no. 17/RD/US-ROI/52**).
 
+## To do
+Get Response.smk into overall snakemake pipeline and get Source data script into snakemake pipeline
