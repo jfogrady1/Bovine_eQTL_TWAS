@@ -68,7 +68,7 @@ rule afc_plotting:
         nominal_control = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/CONTROL.cis_qtl_pairs.ALL.unzipped.txt",
         nominal_reactor = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/INFECTED.cis_qtl_pairs.ALL.unzipped.txt",
         DE = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/RNA-seq/DESEQ2/ALL_results.txt",
-        annotation = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bovine_annotation_MF2.csv",
+        annotation = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf",
         counts_control = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/CONTROL_residualised_expression.txt",
         counts_reactor = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/INFECTED_residualised_expression.txt",
         vcf_control = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/CONTROL_IMPUTED_UPDATED.vcf.gz",

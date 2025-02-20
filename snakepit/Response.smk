@@ -29,7 +29,10 @@ rule all:
         "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/Cis-h2-figure.pdf",
         "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/plots/Imputation_performance_DNA_V_DNA_RNA.pdf",
         "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/SNP_Data_RNA_ALL_CHR.IMPUTED.FILTERED.dose.vcf.gz",
-        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/isec_output/private_RNA.ld"
+        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/variant_call/imputation/isec_output/private_RNA.ld",
+        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/PNPLA1_ieQTL.pdf",
+        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/AD_LRT/ALL_AD_results.txt",
+        "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/plots/Gprofiler_ALL_DE_genes_jitter.pdf"
 
 
 
@@ -60,6 +63,26 @@ rule qtl_mapping_interaction:
             --interaction {input.interaction_file} \
             --maf_threshold_interaction 0.05 \
             --mode cis_nominal
+        '''
+
+
+# ieQTL plotting
+rule ieQTL_plot:
+    input:
+        ieQTL_results = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/ALL_TB_interaction.cis_qtl_top_assoc.txt.gz",
+        vcf="/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_IMPUTED_UPDATED.vcf.gz",
+        expression = '/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_residualised_expression.txt',
+        script = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/plot_ieQTL.R"
+    output:
+        GBP4 = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/GBP4_ieQTL.pdf",
+        PCBP2 = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/PCBP2_ieQTL.pdf",
+        RELT = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/RELT_ieQTL.pdf",
+        PLD3 = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/PLD3_ieQTL.pdf",
+        PNPLA1 = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/PNPLA1_ieQTL.pdf",
+
+    shell:
+        '''
+        Rscript {input.script} {input.ieQTL_results} {input.vcf} {input.expression} {output.GBP4} {output.PCBP2} {output.RELT} {output.PLD3} {output.PNPLA1}
         '''
 
 
@@ -448,3 +471,64 @@ rule plot_heritability:
         """
         Rscript {input.script} {params.path} {output.pdf}
         """
+    
+#############################################################
+
+# Additive Dominant Model in eQTLs ##########################
+#############################################################
+
+rule AD_independent_eQTL:
+    input:
+        script = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/Dominance.R",
+        data = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/ALL.cis_qtl_fdr0.05.txt",
+        data_independent = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/ALL.cis_independent_qtl.txt.gz",
+        vcf_all = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_IMPUTED_UPDATED.vcf.gz",
+        expression = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL.expr_tmm_inv.bed.gz",
+        covariates_all = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL.covariates.txt",
+        
+        data_CON = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/CONTROL.cis_qtl_fdr0.05.txt",
+        data_independent_CON = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/CONTROL.cis_independent_qtl.txt.gz",
+        IFITM3_CON = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/CONTROL.cis_qtl_pairs.29.txt.gz",
+        RGS10_CON = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/CONTROL.cis_qtl_pairs.26.txt.gz",
+        vcf_con = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/CONTROL_IMPUTED_UPDATED.vcf.gz",
+        expression_con = '/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/CONTROL.expr_tmm_inv.bed.gz',
+        covariates_con = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/CONTROL.covariates.txt",
+        
+        data_INFEC = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/INFECTED.cis_qtl_fdr0.05.txt",
+        data_independent_INFEC = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/INFECTED.cis_independent_qtl.txt.gz",
+        IFITM3_INFEC = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/INFECTED.cis_qtl_pairs.29.txt.gz",
+        RGS10_INFEC = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/results/INFECTED.cis_qtl_pairs.26.txt.gz",
+        vcf_infec = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/INFECTED_IMPUTED_UPDATED.vcf.gz",
+        expression_infec = '/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/INFECTED.expr_tmm_inv.bed.gz',
+        covariates_infec = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/INFECTED.covariates.txt",
+    output:
+        ALL_AD_results = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/AD_LRT/ALL_AD_results.txt",
+        CON_AD_results = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/AD_LRT/CON_AD_results.txt",
+        INFEC_AD_results = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/heritability/AD_LRT/INFEC_AD_results.txt"
+    shell:
+        """
+        Rscript {input.script} {input.data} {input.data_independent} {input.vcf_all} {input.expression} {input.covariates_all} \
+        {input.data_CON} {input.data_independent_CON} {input.IFITM3_CON} {input.RGS10_CON} {input.vcf_con} {input.expression_con} {input.covariates_con} \
+        {input.data_INFEC} {input.data_independent_INFEC} {input.IFITM3_INFEC} {input.RGS10_INFEC} {input.vcf_infec} {input.expression_infec} {input.covariates_infec} \
+        {output.ALL_AD_results} {output.CON_AD_results} {output.INFEC_AD_results}
+        """
+        
+#############################################################
+
+# Gprofiler overlap ##########################
+#############################################################
+rule Gprofiler_overlap:
+    input:
+        script = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/bin/Response/Gprofiler.R",
+        DE_results = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/RNA-seq/DESEQ2/ALL_results.txt",
+        Gprofiler001 = "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/RNA-seq/DESEQ2/Gprofiler_results.txt"
+    
+    output:
+        Gprofiler005= "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/plots/Gprofiler_ALL_DE_genes_jitter.pdf",
+    
+    shell:
+        """
+        Rscript {input.script} {input.DE_results} {input.Gprofiler001} {output.Gprofiler005}
+        """
+
+

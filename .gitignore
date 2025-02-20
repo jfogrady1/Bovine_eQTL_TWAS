@@ -1,4 +1,5 @@
 bin/EQTL/Old/*
+bin/TWAS/generic-metal/*
 bin/Response/gatk-4.3.0.0/*
 bin/EQTL/qtltools/*
 results/*

@@ -421,20 +421,36 @@ colnames(Control_de) <- "phenotype_id"
 annotation <- read.csv(args[14]) %>% select(2,3)
 
 
+annotation = fread("~/eqtl_study/eqtl_nextflow/data/RNA_seq/Bos_taurus.ARS-UCD1.2.110.gtf")
+annotation <- annotation %>% filter(V3 == "gene")
+head(annotation)
+annotation <- annotation %>% separate(., V9, into = c("gene_id", "gene_version", "gene_name"), sep = ";")
+annotation$gene_id <- gsub("^gene_id ", "", annotation$gene_id)
+annotation$gene_id <- gsub('"', '', annotation$gene_id)
 
-Reactor_de <- left_join(Reactor_de, annotation, by = c("phenotype_id" = "Ensembl"))
-Control_de <- left_join(Control_de, annotation, by = c("phenotype_id" = "Ensembl"))
+annotation$gene_name <- gsub("gene_name ", "", annotation$gene_name)
+annotation$gene_name <- gsub("gene_source ", "", annotation$gene_name)
+annotation$gene_name <- gsub('"', '', annotation$gene_name)
+annotation$gene_name <- if_else(annotation$gene_name == " ensembl", annotation$gene_id, annotation$gene_name)
+colnames(annotation)[1] <- "chr"
+annotation <- annotation %>% dplyr::select(gene_id, gene_name)
+
+
+
+
+Reactor_de <- left_join(Reactor_de, annotation, by = c("phenotype_id" = "gene_id"))
+Control_de <- left_join(Control_de, annotation, by = c("phenotype_id" = "gene_id"))
 
 
 
 Reactor_de$Symbol
 
-CON_INFEC_merged_final_ORA <-left_join(CON_INFEC_merged_final_ORA, annotation, by = c("phenotype_id" = "Ensembl"))
+CON_INFEC_merged_final_ORA <-left_join(CON_INFEC_merged_final_ORA, annotation, by = c("phenotype_id" = "gene_id"))
 
 
 
 head(CON_INFEC_merged_final)
-CON_INFEC_merged_final <- left_join(CON_INFEC_merged_final, annotation, by = c("phenotype_id" = "Ensembl"))
+CON_INFEC_merged_final <- left_join(CON_INFEC_merged_final, annotation, by = c("phenotype_id" = "gene_id"))
 colnames(CON_INFEC_merged_final)
 
 CON_INFEC_merged_final %>% filter(grouping == "Reactor magnified")

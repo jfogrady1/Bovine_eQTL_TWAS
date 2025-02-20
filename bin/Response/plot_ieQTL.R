@@ -5,13 +5,13 @@
 library(data.table)
 library(tidyverse)
 library(vcfR)
-
+args = commandArgs(trailingOnly = TRUE)
 # First thing is to read in the data for top eQTLs
-data <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/ALL_TB_interaction.cis_qtl_top_assoc.txt.gz") %>% filter(pval_adj_bh < 0.25)
+data <- fread(args[1]) %>% filter(pval_adj_bh < 0.25)
 head(data)
 
 
-vcf_all <- vcfR::read.vcfR("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_IMPUTED_UPDATED.vcf.gz")
+vcf_all <- vcfR::read.vcfR()
 
 
 
@@ -34,7 +34,7 @@ dim(vcf_all)
 rownames(vcf_all)
 
 # Read in expression data set
-expression = fread('/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/EQTL/formatting/ALL_residualised_expression.txt') %>% select(-c(1:4,6))
+expression = fread(args[3]) %>% select(-c(1:4,6))
 head(expression)
 # read in expression data
 rownames(expression) <- expression$gid
@@ -103,12 +103,12 @@ PNPLA1 = eQTL_plot(gene_id = "ENSBTAG00000015118", SNP_id = "23:10034540:C:T",  
 
 
 GBP4
-ggsave("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/GBP4_ieQTL.pdf", width = 12, height = 12, dpi = 600)
+ggsave(args[4], width = 12, height = 12, dpi = 600)
 PCBP2
-ggsave("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/PCBP2_ieQTL.pdf", width = 12, height = 12, dpi = 600)
+ggsave(args[5], width = 12, height = 12, dpi = 600)
 RELT
-ggsave("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/RELT_ieQTL.pdf", width = 12, height = 12, dpi = 600)
+ggsave(args[6], width = 12, height = 12, dpi = 600)
 PLD3
-ggsave("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/PLD3_ieQTL.pdf", width = 12, height = 12, dpi = 600)
+ggsave(args[7], width = 12, height = 12, dpi = 600)
 PNPLA1
-ggsave("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/ieQTL/results/raw/PNPLA1_ieQTL.pdf", width = 12, height = 12, dpi = 600)
+ggsave(args[8], width = 12, height = 12, dpi = 600)

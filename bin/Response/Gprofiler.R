@@ -3,7 +3,9 @@ library(gprofiler2)
 library(data.table)
 library(ggplot2)
 library(ggrepel)
-DE_results <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/RNA-seq/DESEQ2/ALL_results.txt")
+
+args = commandArgs(trailingOnly = TRUE)
+DE_results <- fread(args[1])
 
 DE_results <- DE_results[order(DE_results$padj, decreasing = F),]
 head(DE_results)
@@ -23,7 +25,7 @@ result_df <- results_0.05$result
 
 
 
-results_0.01 <- fread("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/RNA-seq/DESEQ2/Gprofiler_results.txt")
+results_0.01 <- fread()
 
 library(VennDiagram)
 
@@ -103,4 +105,4 @@ result_df <- results$result
     guides(color = guide_legend(override.aes = list(size = 5)))
 my_plot
 View(results$result)
-ggsave("/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/reviewer/RNA_seq/plots/Gprofiler_ALL_DE_genes_jitter.pdf", width = 12, height = 12, dpi = 600)
+ggsave(args[3], width = 12, height = 12, dpi = 600)
