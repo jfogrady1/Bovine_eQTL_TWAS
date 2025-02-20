@@ -1,4 +1,4 @@
-# Integrative genomics sheds light on the immunobiology of tuberculosis disease in cattle
+# Integrative genomics sheds light on the immunogenetics of tuberculosis disease in cattle
 
 ## Description
 
