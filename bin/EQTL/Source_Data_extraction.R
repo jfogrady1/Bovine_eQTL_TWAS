@@ -66,30 +66,60 @@ mean(ALL$rank)
 mean(CONTROL$rank)
 mean(INFECTED$rank)
 
-# Now plot number per group
+
+############### NOTE THIS PREVENTS DOUBLE COUNTING OF independent cis-eQTLs for the same gene that have the same P-value
 ALL <- ALL[order(ALL$rank, decreasing = T),]
-ALL <- ALL %>% group_by(phenotype_id) %>% summarize(conditional = max(rank),
-                                                    Group = "ALL")
-ALL_plot <- ALL %>% group_by(conditional) %>% summarize(Group = "ALL",
-                                                        genes = n())
-
+ALL_plot = data.frame((table(table(ALL$phenotype_id))))
 CONTROL <- CONTROL[order(CONTROL$rank, decreasing = T),]
-CONTROL <- CONTROL %>% group_by(phenotype_id) %>% summarize(conditional = max(rank),
-                                                            Group = "CONTROL")
-CONTROL_plot <- CONTROL %>% group_by(conditional) %>% summarize(Group = "CONTROL",
-                                                                genes = n())
-
-
+CONTROL_plot = data.frame((table(table(CONTROL$phenotype_id))))
 INFECTED <- INFECTED[order(INFECTED$rank, decreasing = T),]
-INFECTED <- INFECTED %>% group_by(phenotype_id) %>% summarize(conditional = max(rank),
-                                                              Group = "INFECTED")
-INFECTED_plot <- INFECTED %>% group_by(conditional) %>% summarize(Group = "INFECTED",
-                                                                  genes = n())
-
+INFECTED_plot = data.frame((table(table(INFECTED$phenotype_id))))
+colnames(ALL_plot) <- c("conditional", "genes")
+colnames(CONTROL_plot) <- c("conditional", "genes")
+colnames(INFECTED_plot) <- c("conditional", "genes")
+ALL_plot$Group <- "AAG"
+CONTROL_plot$Group <- "bTB-"
+INFECTED_plot$Group <- "bTB+"
 conditional_plot <- rbind(ALL_plot, CONTROL_plot, INFECTED_plot)
 conditional_plot$conditional <- as.character(conditional_plot$conditional)
 conditional_plot$conditional <- factor(conditional_plot$conditional, levels = c("1","2","3","4","5","6","7","8","9","10","11"))
 
+
+
+ggplot(data = conditional_plot, aes(x = conditional, y = genes, fill = Group)) + 
+geom_bar(alpha = 0.8, stat="identity", position = "dodge") +
+scale_fill_manual(breaks = c("AAG", "bTB-", "bTB+"), values = c("#542788","#2166ac", "#b2182b")) + 
+scale_y_continuous(breaks = c(0,500,1000,1500,2000,2500,3000,3500,4000), limits = c(0,3500)) +
+scale_x_discrete(breaks = c("1","2","3","4","5","6","7","8","9","10","11")) +
+theme_bw() +
+labs(y = "Genes with eQTLs", x = "# of conditional eQTLs") +
+theme(axis.text.x = element_text(angle = 0, size = 15, colour = "black"),
+                axis.text.y = element_text(angle = 0, size = 15, colour = "black"),
+                legend.text = element_text(size = 15, colour = "black"),
+                axis.title.x = element_text(size = 18, colour = "black"),
+                axis.title.y = element_text(size = 18, color = "black"))
+
+head(conditional_plot)
+# sub plot
+conditional_plot %>% filter(as.numeric(conditional_plot$conditional) >= 4) %>% 
+ggplot(., aes(x = conditional, y = genes, fill = Group)) + 
+geom_bar(alpha = 0.8, stat="identity", position = "dodge") +
+scale_fill_manual(labels = c("AAG", "bTB-", "bTB+"), values = c("#542788","#2166ac", "#b2182b")) + 
+scale_y_continuous(breaks = c(0,10,20,30,40,50,100,150,200,250,300,350), limits = c(0,360)) +
+scale_x_discrete(breaks = c("4","5","6","7","8","9","10","11")) +
+theme_bw() +
+labs(y = "Genes with eQTLs", x = "# of conditional eQTLs") +
+theme(axis.text.x = element_text(angle = 0, size = 15, colour = "black"),
+                axis.text.y = element_text(angle = 0, size = 15, colour = "black"),
+                legend.text = element_text(size = 15, colour = "black"),
+                axis.title.x = element_text(size = 18, colour = "black"),
+                axis.title.y = element_text(size = 18, color = "black"))
+
+conditional_plot %>% group_by(Group) %>% summarize(tot = sum(as.numeric(conditional) * genes))
+
+
+
+conditional_plot
 conditional_plot %>% group_by(Group) %>% summarize(sum(genes))
 
 write.table(conditional_plot, "/home/workspace/jogrady/eqtl_study/eqtl_nextflow/results/Source_data/Fig_3B.txt", sep = "\t",  quote = F, row.names = F)
