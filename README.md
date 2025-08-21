@@ -1,17 +1,18 @@
 # Integrative genomics sheds light on the immunogenetics of tuberculosis disease in cattle
 
+---
 ## Description
 
-_Mycobacterium bovis_ causes bovine tuberculosis (bTB), an infectious disease of cattle that represents a zoonotic threat to humans. Research has shown that the peripheral blood (PB) transcriptome is perturbed during bTB disease but the genomic architecture underpinning this transcriptional response remains poorly understood. Here, we analyse PB transcriptomics data from 63 control and 60 confirmed _M. bovis_ infected animals and detect 2,592 differently expressed genes perturbing multiple immune response pathways. Leveraging imputed genome-wide SNP data, we characterise thousands of _cis_-expression quantitative trait loci (eQTLs) and show that the PB transcriptome is substantially impacted by intrapopulation genomic variation during _M. bovis_ infection. Integrating our _cis_-eQTL data with bTB susceptibility GWAS summary statistics, we perform a transcriptome-wide association study and identify 132 functionally relevant genes (including _RGS10_, _GBP4_, _TREML2_, and _RELT_) and provide important new omics data for understanding the host response to mycobacterial infections that cause tuberculosis in mammals.
+_Mycobacterium bovis_ causes bovine tuberculosis (bTB), an infectious disease of cattle that represents a zoonotic threat to humans. Research has shown that the peripheral blood (PB) transcriptome is perturbed during bTB disease but the genomic architecture underpinning this transcriptional response remains poorly understood. Here, we analyse PB transcriptomics data from 63 control and 60 confirmed _M. bovis_-infected animals and detect 2,592 differently expressed genes perturbing multiple immune response pathways. Leveraging imputed genome-wide SNP data, we characterise thousands of _cis_-expression quantitative trait loci (eQTLs) and show that the PB transcriptome is substantially impacted by intrapopulation genomic variation during _M. bovis_ infection. Integrating our _cis_-eQTL data with bTB susceptibility GWAS summary statistics, we perform a transcriptome-wide association study and identify 115 functionally relevant genes (including _RGS10_, _GBP4_, _TREML2_, and _RELT_) and provide important new omics data for understanding the host response to mycobacterial infections that cause tuberculosis in mammals.
 
 ## Overview of study
 
-![image](https://github.com/user-attachments/assets/982b3037-6396-4eb6-812d-b1a3fb1b1ea0)
+![Figure_01](https://github.com/jfogrady1/Bovine_eQTL_TWAS/blob/main/Figure_01.png)
 
 
 ## Graph of pipeline
 
-![image](https://github.com/user-attachments/assets/63f257fe-d8b0-4c87-8956-9b2a35f4beb1)
+![dag](https://github.com/jfogrady1/Bovine_eQTL_TWAS/blob/main/dag.png)
 
 
 ## Data availability
@@ -23,5 +24,7 @@ The RNA-seq data from the 60 M. bovis-infected (bTB+) and 63 control (bTB−) ca
 
 J.F.O’G was supported by Research Ireland through the Research Ireland Centre for Research Training in Genomics Data Science (**grant no. 18/CRT/6214**). This study was also supported by Science Foundation Ireland (SFI) Investigator Programme Awards to D.E.M. and S.V.G. (**grant nos. SFI/08/IN.1/B2038 and SFI/15/IA/3154**), the University College Dublin – University of Edinburgh Strategic Partnership in One Health awarded to D.E.M., S.V.G., J.G.D.P., and E.L.C., and a Department of Agriculture, Food and the Marine (DAFM) project award to D.E.M. (**TARGET-TB; grant no. 17/RD/US-ROI/52**).
 
-## To do
-Get Response.smk into overall snakemake pipeline and get Source data script into snakemake pipeline
+
+## Citation
+
+- O’Grady, J.F., McHugo G.P., Ward J.A., Hall, T.J., Faherty O’Donnell S.L., Correia N.C., Browne J.A., McDonald M., Gormley E., Riggio V., Prendergast J.G.D., Clarke E.L., Pausch H., Meade K.G., Gormley I.C., Gordon S.V. & MacHugh D.E. (2025) Integrative genomics sheds light on the immunogenetics of tuberculosis in cattle. _Communications Biology_, **8**, 479. https://doi.org/10.1038/s42003-025-07846-x
